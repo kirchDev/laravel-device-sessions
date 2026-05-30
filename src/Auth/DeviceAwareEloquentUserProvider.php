@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cookie;
 use KirchDev\DeviceSessions\Contracts\DeviceCookieFactory;
 use KirchDev\DeviceSessions\Contracts\DeviceResolver;
@@ -115,7 +116,15 @@ class DeviceAwareEloquentUserProvider extends EloquentUserProvider
         $device->rememberTokens()->create([
             'token_hash' => $this->tokenHasher->hash($token),
             'last_used_at' => now(),
+            'expires_at' => $this->rememberTokenExpiry(),
         ]);
+    }
+
+    private function rememberTokenExpiry(): ?Carbon
+    {
+        $lifetime = config('device-sessions.remember.lifetime');
+
+        return is_numeric($lifetime) ? now()->addMinutes((int) $lifetime) : null;
     }
 
     private function resolveRequest(): ?Request

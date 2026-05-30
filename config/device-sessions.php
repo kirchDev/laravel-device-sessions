@@ -114,6 +114,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Remember Tokens
+    |--------------------------------------------------------------------------
+    |
+    | "lifetime" (in minutes) sets the expires_at on newly issued device-bound
+    | remember tokens. null means tokens never expire (only revocation or a new
+    | login rotation invalidates them).
+    |
+    */
+
+    'remember' => [
+        'lifetime' => null,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Lifecycle Events
     |--------------------------------------------------------------------------
     |
