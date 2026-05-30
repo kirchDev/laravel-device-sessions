@@ -22,20 +22,23 @@ final class RevokeOtherUserDevices
         $deviceModel = DeviceSessions::deviceModel();
         $userForeignKey = DeviceSessions::userForeignKey();
 
-        $devices = $deviceModel::query()
+        $deviceIds = $deviceModel::query()
             ->where($userForeignKey, $user->getAuthIdentifier())
             ->whereKeyNot($currentDeviceId)
             ->whereNull('revoked_at')
-            ->get();
+            ->pluck('id');
+
+        if ($deviceIds->isEmpty()) {
+            return;
+        }
 
         $now = now();
 
-        foreach ($devices as $device) {
-            $device->forceFill(['revoked_at' => $now])->save();
+        $deviceModel::query()->whereKey($deviceIds)->update(['revoked_at' => $now]);
 
-            $device->rememberTokens()
-                ->whereNull('revoked_at')
-                ->update(['revoked_at' => $now]);
-        }
+        DeviceSessions::rememberTokenModel()::query()
+            ->whereIn('user_device_id', $deviceIds)
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => $now]);
     }
 }

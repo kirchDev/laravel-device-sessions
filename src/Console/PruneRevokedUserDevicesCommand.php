@@ -26,11 +26,23 @@ class PruneRevokedUserDevicesCommand extends Command
         $cutoff = now()->subDays($days);
 
         $deviceModel = DeviceSessions::deviceModel();
+        $chunk = 1000;
+        $deleted = 0;
 
-        $deleted = $deviceModel::query()
-            ->whereNotNull('revoked_at')
-            ->where('revoked_at', '<=', $cutoff)
-            ->delete();
+        do {
+            $ids = $deviceModel::query()
+                ->whereNotNull('revoked_at')
+                ->where('revoked_at', '<=', $cutoff)
+                ->limit($chunk)
+                ->pluck('id');
+
+            if ($ids->isEmpty()) {
+                break;
+            }
+
+            // Remember tokens cascade via the foreign key.
+            $deleted += $deviceModel::query()->whereKey($ids)->delete();
+        } while ($ids->count() === $chunk);
 
         $this->info(sprintf('Pruned %d revoked devices older than %d days.', $deleted, $days));
 
