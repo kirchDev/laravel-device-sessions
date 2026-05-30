@@ -6,9 +6,11 @@ namespace KirchDev\DeviceSessions\Support;
 
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use KirchDev\DeviceSessions\Models\UserDevice;
 use KirchDev\DeviceSessions\Models\UserDeviceRememberToken;
+use Throwable;
 
 /**
  * Central resolver for the package's configurable models, keys, and cache store.
@@ -74,5 +76,35 @@ final class DeviceSessions
         $store = config('device-sessions.cache.store');
 
         return Cache::store(is_string($store) ? $store : null);
+    }
+
+    /**
+     * Resolve the current device id for a request: the `current_device_id`
+     * attribute (set by the middleware) first, then the device cookie. Falls
+     * back to the container request when none is given.
+     */
+    public static function currentDeviceId(?Request $request = null): ?string
+    {
+        if (! $request instanceof Request) {
+            try {
+                $request = request();
+            } catch (Throwable) {
+                return null;
+            }
+        }
+
+        if (! $request instanceof Request) {
+            return null;
+        }
+
+        $attribute = $request->attributes->get('current_device_id');
+
+        if (is_string($attribute) && $attribute !== '') {
+            return $attribute;
+        }
+
+        $cookie = $request->cookie(self::cookieName());
+
+        return is_string($cookie) && trim($cookie) !== '' ? trim($cookie) : null;
     }
 }
