@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use KirchDev\DeviceSessions\Models\UserDevice;
 use KirchDev\DeviceSessions\Tests\Fixtures\User;
 use KirchDev\DeviceSessions\Tests\TestCase;
+use KirchDev\DeviceSessions\Tests\UlidKeysTestCase;
 use KirchDev\DeviceSessions\Tests\UuidKeysTestCase;
 
 pest()->extend(TestCase::class)->in('Feature');
 pest()->extend(UuidKeysTestCase::class)->in('UuidKeys');
+pest()->extend(UlidKeysTestCase::class)->in('UlidKeys');
 
 function makeUser(string $email = 'test@example.com'): User
 {
