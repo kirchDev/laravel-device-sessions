@@ -88,6 +88,11 @@ abstract class TestCase extends Orchestra
     {
         parent::setUp();
 
+        // Persistent drivers (e.g. pgsql) keep tables between tests, unlike the
+        // fresh-per-connection in-memory SQLite default. Drop everything first so
+        // each test starts from a clean schema.
+        Schema::dropAllTables();
+
         $this->createUsersTable();
         $this->artisan('migrate')->run();
     }
