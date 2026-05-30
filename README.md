@@ -19,47 +19,22 @@
 $user->devices; // every browser signed in, with masked IP, OS and last-seen — GitHub-style
 ```
 
-That's it. Multiple concurrent device-bound remember-me tokens, a manageable device list, and revoke/rename — without touching your login controllers.
+That's it. Concurrent device-bound remember-me tokens, a "where am I signed in" list, and revoke/rename — without touching your login controllers.
 
-## ✨ Features
-
-- **🔐 Device-bound remember-me** — a custom `device-aware-eloquent` auth driver binds each remember token to a device row + cookie instead of the single `remember_token` column. One active token per device, rotated on every login.
-- **📋 "Where am I signed in"** — list active devices (OS, friendly name, masked IP, last-seen), then revoke one, revoke all others, or rename — all as plain actions.
-- **🕵️ Privacy-respecting** — IP masking by default (IPv4 → /24, IPv6 hardened to /48). Swap it for your own via the `IpMasker` contract.
-- **🔌 Fortify-agnostic** — works under any login mechanism (`Auth::attempt`, Breeze, Jetstream, Fortify). The two-factor cookie bridge auto-wires **only** when Fortify is installed.
-- **🧩 Overridable everything** — name parsing, OS detection, cookie policy, IP masking and token hashing are all contracts bound to sensible defaults.
-- **🧰 Config-driven schema** — model / table / key types (`id` / `uuid` / `ulid`) all overridable. UUID setups supported out of the box.
-- **📡 Event-driven** — `DeviceTouched` lets you react (e.g. write your own `user.last_seen_at`) without the package assuming your schema.
-- **🧪 Library-grade** — Pest 4 + Testbench, no host app needed.
-
-## 📦 Installation
+## 📦 Install & run
 
 ```bash
 composer require kirchdev/laravel-device-sessions
-```
-
-Publish and run the migrations:
-
-```bash
 php artisan vendor:publish --tag=device-sessions-migrations
 php artisan migrate
 ```
 
-Optionally publish the config:
-
-```bash
-php artisan vendor:publish --tag=device-sessions-config
-```
-
 > [!IMPORTANT]
-> Set `device-sessions.keys.*` and `table_names.*` **before** migrating — the migrations read config at run time. `keys.user_key_type` must match your users-table primary key type.
+> Publish the config first (`--tag=device-sessions-config`) and set `device-sessions.keys.*` + `table_names.*` **before** migrating — the migrations read config at run time, and `keys.user_key_type` must match your users-table primary key.
 
-## 🚀 Quick start
-
-Add the `HasDeviceSessions` trait to your authenticatable model:
+Add the `HasDeviceSessions` trait to your authenticatable model and point its auth provider at the device-aware driver:
 
 ```php
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use KirchDev\DeviceSessions\Concerns\HasDeviceSessions;
 
 class User extends Authenticatable
@@ -67,8 +42,6 @@ class User extends Authenticatable
     use HasDeviceSessions;
 }
 ```
-
-Opt the auth provider into the device-aware driver:
 
 ```php
 // config/auth.php
@@ -80,15 +53,15 @@ Opt the auth provider into the device-aware driver:
 ],
 ```
 
-Track the device per request by aliasing and attaching the middleware:
+Then alias the tracking middleware and attach it to your authenticated routes — that's the whole wiring; remember-me logins are now device-bound and the device list populates automatically:
 
 ```php
 // bootstrap/app.php
 use KirchDev\DeviceSessions\Http\Middleware\TrackAuthenticatedUserDevice;
 
-->withMiddleware(function (Middleware $middleware) {
-    $middleware->alias(['track.device' => TrackAuthenticatedUserDevice::class]);
-})
+->withMiddleware(fn (Middleware $middleware) => $middleware->alias([
+    'track.device' => TrackAuthenticatedUserDevice::class,
+]))
 ```
 
 ```php
@@ -97,20 +70,23 @@ Route::middleware(['auth', 'track.device'])->group(function () {
 });
 ```
 
-That's the whole wiring. From here, remember-me logins are device-bound and the device list populates automatically.
+## ✨ Features
+
+- **🔐 Device-bound remember-me** — a custom `device-aware-eloquent` driver binds each remember token to a device row + cookie instead of the single `remember_token` column (one active token per device, rotated on login).
+- **📋 "Where am I signed in"** — list active devices (OS, friendly name, masked IP, last-seen), revoke one, revoke all others, or rename — all as plain actions.
+- **🕵️ Privacy-respecting** — IP masking on by default (IPv4 → /24, IPv6 → /48), swappable via the `IpMasker` contract.
+- **🔌 Fortify-agnostic** — works under any login mechanism; the two-factor cookie bridge auto-wires only when Fortify is present.
+- **🧩 Overridable everything** — name parsing, OS detection, cookie policy, IP masking and token hashing are contracts with sensible defaults.
+- **🧰 Config-driven schema** — models, table names and key types (`id` / `uuid` / `ulid`) all overridable.
+- **📡 Event-driven** — a `DeviceTouched` event lets you react without the package assuming your schema.
+- **🧪 Library-grade** — Pest 4 + Testbench, no host app needed.
 
 ## 📋 Managing devices
 
-Every device operation is a plain action you call from your own controllers — the
-package ships **no** routes, so the response shape stays yours:
+The package ships **no routes** — every operation is a plain action you call from your own controllers, so the response shape stays yours:
 
 ```php
-use KirchDev\DeviceSessions\Actions\{
-    ListUserDevices,
-    RevokeUserDevice,
-    RevokeOtherUserDevices,
-    UpdateUserDeviceName,
-};
+use KirchDev\DeviceSessions\Actions\{ListUserDevices, RevokeUserDevice, RevokeOtherUserDevices, UpdateUserDeviceName};
 
 $devices = app(ListUserDevices::class)->execute($user);          // active devices, last-seen first
 app(RevokeUserDevice::class)->execute($user, $deviceId);         // revoke one (+ its tokens)
@@ -118,17 +94,21 @@ app(RevokeOtherUserDevices::class)->execute($user, $currentId);  // keep only th
 app(UpdateUserDeviceName::class)->execute($user, $deviceId, 'Work Laptop');
 ```
 
-The middleware exposes the current device as a request attribute so you can mark
-"this device" in the list:
-
-```php
-$currentDeviceId = $request->attributes->get('current_device_id');
-```
+The middleware exposes the active device as the `current_device_id` request attribute (also `$user->currentDevice()`), so you can flag "this device" in the list.
 
 ## 🧩 Overridable contracts
 
-Every host-facing behaviour is a contract bound to a default — rebind any of them
-in a service provider:
+Every host-facing behaviour is a contract bound to a `Default*` — rebind any of them in a service provider:
+
+```php
+$this->app->bind(
+    \KirchDev\DeviceSessions\Contracts\IpMasker::class,
+    \App\Support\MyStrictIpMasker::class,
+);
+```
+
+<details>
+<summary>All contracts and their defaults</summary>
 
 | Contract              | Default                      | Controls                               |
 | :-------------------- | :--------------------------- | :------------------------------------- |
@@ -139,50 +119,41 @@ in a service provider:
 | `IpMasker`            | `DefaultIpMasker`            | IP minimisation (IPv4 /24, IPv6 /48)   |
 | `RememberTokenHasher` | `Sha256RememberTokenHasher`  | at-rest token hashing                  |
 
-```php
-$this->app->bind(
-    \KirchDev\DeviceSessions\Contracts\IpMasker::class,
-    \App\Support\MyStrictIpMasker::class,
-);
-```
+</details>
 
 ## 📡 Events & Fortify
 
-`TouchDeviceLastSeen` fires `DeviceTouched` on a real (throttled) touch — listen to
-it instead of patching the package when you want to, for example, stamp your own
-user column:
+`TouchDeviceLastSeen` fires `DeviceTouched` on a real (throttled) touch — listen instead of patching the package, e.g. to stamp your own user column:
 
 ```php
-use KirchDev\DeviceSessions\Events\DeviceTouched;
-
-Event::listen(function (DeviceTouched $event) {
-    $event->user->forceFill(['last_seen_at' => now()])->save();
-});
+Event::listen(fn (DeviceTouched $event) => $event->user->forceFill(['last_seen_at' => now()])->save());
 ```
 
 Two opt-in integrations:
 
-- **`OtherDeviceLogout`** → revokes all other devices (mirrors `Auth::logoutOtherDevices()`). Toggle via `device-sessions.events`.
-- **Fortify two-factor** → when Fortify is installed, a listener on `TwoFactorAuthenticationChallenged` queues the device cookie at the challenge point (the normal `Login` event hasn't fired yet). Auto-wired via `class_exists` — the package never `require`s Fortify. Using a different 2FA flow? Write your own bridge against the `DeviceResolver` contract.
+- **`OtherDeviceLogout`** → revokes all other devices (mirrors `Auth::logoutOtherDevices()`); toggle via `device-sessions.events`.
+- **Fortify two-factor** → a listener queues the device cookie at the 2FA challenge (where the `Login` event hasn't fired yet), auto-wired via `class_exists` so Fortify is never required. Using another 2FA flow? Write your own bridge against the `DeviceResolver` contract.
 
 ## 🧹 Pruning revoked devices
 
-Revoked devices are kept (for an audit/undo window), then pruned:
+Revoked devices are kept (audit/undo window), then pruned. The command ships **unscheduled** — wire it into your scheduler with `Schedule::command('device-sessions:prune')->dailyAt('03:10')`:
 
 ```bash
-php artisan device-sessions:prune            # uses device-sessions.prune.retention_days (default 180)
+php artisan device-sessions:prune            # retention from device-sessions.prune.retention_days (180)
 php artisan device-sessions:prune --days=90
 ```
 
-The command ships **unscheduled** — wire it into your scheduler:
+## ⚙️ Configuration
+
+`config/device-sessions.php` is parameterised with inline docs — e.g. rename the cookie or switch key types:
 
 ```php
-Schedule::command('device-sessions:prune')->dailyAt('03:10');
+'cookie' => ['name' => 'device', 'same_site' => 'lax'],
+'keys'   => ['primary_key_type' => 'id', 'user_key_type' => 'id'],
 ```
 
-## ⚙️ Configuration highlights
-
-`config/device-sessions.php` is parameterised — see the file for inline docs. Most common knobs:
+<details>
+<summary>All configuration keys</summary>
 
 | Key                    | What it controls                                                                 |
 | :--------------------- | :------------------------------------------------------------------------------- |
@@ -191,8 +162,11 @@ Schedule::command('device-sessions:prune')->dailyAt('03:10');
 | `keys.*`               | `id` / `uuid` / `ulid` for device PKs and the user FK. Set **before** migrating. |
 | `cookie.*`             | Device cookie name (default `device`), lifetime, SameSite, secure.               |
 | `cache.*`              | Cache store, key prefix, login→2FA bootstrap TTL, last-seen throttle.            |
+| `remember.lifetime`    | Minutes until a remember token expires (`null` = never).                         |
 | `events.*`             | Toggle the core event listeners.                                                 |
 | `prune.retention_days` | Retention window for the prune command (default 180).                            |
+
+</details>
 
 ## 🧪 Testing
 
