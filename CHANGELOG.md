@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.2.0...v0.3.0) (2026-07-26)
+
+
+### Features
+
+* route questions, ideas and possible bugs to the Discord forum ([72da365](https://github.com/kirchDev/laravel-device-sessions/commit/72da36536bea43428d11eaa2942bb4192c317196))
+
+
+### Bug Fixes
+
+* align dependabot labels to the stack: convention ([29e3d7f](https://github.com/kirchDev/laravel-device-sessions/commit/29e3d7f2c010ea25bc766359d3eae03dd0b31d91))
+* align issue-template labels with the label catalog ([c90a880](https://github.com/kirchDev/laravel-device-sessions/commit/c90a88028425752c29be2c2092303caa815518e4))
+
+
+### Documentation
+
+* add AGENTS.md and sync agent instruction files ([b529a54](https://github.com/kirchDev/laravel-device-sessions/commit/b529a5429ed71a69c6f9a24b0e8b82a786bafc2a))
+
 ## [0.2.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.1.0...v0.2.0) (2026-05-30)
 
 
