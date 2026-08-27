@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.4.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.3.0...v0.4.0) (2026-08-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* **migrations:** the package's migration filenames changed. Consumers are unaffected — they only ever see the published names, which are generated.
+* **migrations:** published migrations no longer carry the package's own filenames. A consumer who relied on the removed auto-load and never published must record the published copies as run before migrating; the README upgrade note carries the recipe.
+* migrations are no longer auto-loaded. Consumers relying on the auto-load must run `php artisan vendor:publish --tag=device-sessions-migrations` before their next `migrate`. Anyone who had already published is unaffected.
+
+### Features
+
+* **migrations:** stamp published migrations at publish time ([61c1ce8](https://github.com/kirchDev/laravel-device-sessions/commit/61c1ce85f728515c77d73303319d5eeffb5c2402))
+* publish migrations instead of auto-loading them ([bed21a4](https://github.com/kirchDev/laravel-device-sessions/commit/bed21a496f85f6da30c45af25dadcd5cc8bdf552)), closes [#27](https://github.com/kirchDev/laravel-device-sessions/issues/27)
+
+
+### Bug Fixes
+
+* **ci:** let the queue PR body wrap itself ([c878b37](https://github.com/kirchDev/laravel-device-sessions/commit/c878b37e53cadb29e3a5a9ffd26b19c3c25e1cdc))
+* **ci:** read the Queue App PEM from this owner's own -ci mirror ([8023203](https://github.com/kirchDev/laravel-device-sessions/commit/8023203aa19cc4c173140c8b766992d6c35c4885))
+
+
+### Documentation
+
+* document the publish-only migration flow ([8dfb02e](https://github.com/kirchDev/laravel-device-sessions/commit/8dfb02ed28dc26d9afda1034b0a2c000158f2321)), closes [#27](https://github.com/kirchDev/laravel-device-sessions/issues/27)
+* **migrations:** state the unpublished upgrade as a breaking change ([bc999a3](https://github.com/kirchDev/laravel-device-sessions/commit/bc999a38c7956a33a456b35682ad962968aa0376))
+
+
+### Refactor
+
+* **migrations:** move publish naming into PackageMigrations ([f89e7ca](https://github.com/kirchDev/laravel-device-sessions/commit/f89e7ca778b9f24950b30c70728684673d462075))
+* **migrations:** name source migrations by sequence instead of date ([944b8a1](https://github.com/kirchDev/laravel-device-sessions/commit/944b8a1e800595a7fc14548b3f4ad061d1e5d098))
+
 ## [0.3.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.2.0...v0.3.0) (2026-07-26)
 
 
