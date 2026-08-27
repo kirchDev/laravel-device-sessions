@@ -32,6 +32,21 @@ use Laravel\Fortify\Events\TwoFactorAuthenticationChallenged;
 
 class DeviceSessionsServiceProvider extends ServiceProvider
 {
+    /**
+     * The package's migrations, in the order they have to run: the remember-token table
+     * carries a foreign key to user_devices, so that table must exist first.
+     *
+     * Published filenames are stamped at publish time, so this list — not the source
+     * filenames — is what fixes the order a consumer's migrator ends up seeing. Each
+     * entry is published one second after the one before it.
+     *
+     * @var list<string>
+     */
+    private const MIGRATIONS = [
+        '0001_01_01_000001_create_user_devices_table.php',
+        '0001_01_01_000002_create_user_device_remember_tokens_table.php',
+    ];
+
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/device-sessions.php', 'device-sessions');
@@ -50,9 +65,7 @@ class DeviceSessionsServiceProvider extends ServiceProvider
             __DIR__.'/../config/device-sessions.php' => config_path('device-sessions.php'),
         ], 'device-sessions-config');
 
-        $this->publishes([
-            __DIR__.'/../database/migrations' => database_path('migrations'),
-        ], 'device-sessions-migrations');
+        $this->offerMigrationPublishing();
 
         $this->registerAuthProvider();
         $this->registerEventListeners();
@@ -61,6 +74,49 @@ class DeviceSessionsServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([PruneRevokedUserDevicesCommand::class]);
         }
+    }
+
+    /**
+     * Map every package migration onto the filename it gets inside the consuming application.
+     *
+     * The migrations are never loaded from the package, so the published copy is the only one
+     * that ever runs. Each is stamped with the publish time, one second apart in MIGRATIONS
+     * order, which is what keeps the foreign keys resolvable when the consumer migrates.
+     */
+    private function offerMigrationPublishing(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $publishedAt = time();
+        $paths = [];
+
+        foreach (self::MIGRATIONS as $offset => $migration) {
+            $name = (string) preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $migration);
+
+            $paths[__DIR__.'/../database/migrations/'.$migration] = $this->publishedMigrationPath(
+                $name,
+                $publishedAt + $offset,
+            );
+        }
+
+        $this->publishes($paths, 'device-sessions-migrations');
+    }
+
+    /**
+     * Where a published migration lands.
+     *
+     * An already published copy keeps the filename it has, so re-running the publish never
+     * leaves a consumer with two migrations creating the same table. Only a migration that
+     * is not there yet gets a fresh stamp.
+     */
+    private function publishedMigrationPath(string $name, int $timestamp): string
+    {
+        $directory = database_path('migrations');
+        $existing = glob($directory.DIRECTORY_SEPARATOR.'*_'.$name) ?: [];
+
+        return $existing[0] ?? $directory.DIRECTORY_SEPARATOR.date('Y_m_d_His', $timestamp).'_'.$name;
     }
 
     private function registerAuthProvider(): void

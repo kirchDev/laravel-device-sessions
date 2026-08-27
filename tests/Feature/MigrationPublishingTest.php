@@ -6,6 +6,23 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use KirchDev\DeviceSessions\DeviceSessionsServiceProvider;
 
+/**
+ * Strip the timestamp a published migration carries, leaving the part that identifies
+ * which table it creates.
+ */
+function deviceSessionsMigrationTable(string $file): string
+{
+    return (string) preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', basename($file));
+}
+
+function deviceSessionsPublishedMigrations(): array
+{
+    return ServiceProvider::pathsToPublish(
+        DeviceSessionsServiceProvider::class,
+        'device-sessions-migrations',
+    );
+}
+
 it('does not register the package migrations on the application migrator', function () {
     $packagePath = realpath(__DIR__.'/../../database/migrations');
 
@@ -17,24 +34,66 @@ it('does not register the package migrations on the application migrator', funct
     expect($registered)->not->toContain($packagePath);
 });
 
-it('offers the migrations to consumers through the publish tag', function () {
-    $paths = ServiceProvider::pathsToPublish(
-        DeviceSessionsServiceProvider::class,
-        'device-sessions-migrations',
-    );
+it('offers every package migration under the publish tag', function () {
+    $published = deviceSessionsPublishedMigrations();
 
-    expect($paths)->toHaveCount(1)
-        ->and(realpath((string) array_key_first($paths)))->toBe(realpath(__DIR__.'/../../database/migrations'))
-        ->and(array_values($paths)[0])->toBe(database_path('migrations'));
+    expect($published)->toHaveCount(2);
+
+    $sources = array_map(fn (string $path): string => basename($path), array_keys($published));
+    sort($sources);
+
+    expect($sources)->toBe([
+        '0001_01_01_000001_create_user_devices_table.php',
+        '0001_01_01_000002_create_user_device_remember_tokens_table.php',
+    ]);
+
+    foreach ($published as $source => $target) {
+        expect(is_file($source))->toBeTrue()
+            ->and(dirname($target))->toBe(database_path('migrations'))
+            ->and(basename($target))->toMatch('/^\d{4}_\d{2}_\d{2}_\d{6}_create_\w+_table\.php$/');
+    }
 });
 
-it('publishes the migrations without re-stamping their filenames', function () {
-    $stamped = array_map(
-        fn (string $path): string => realpath($path) ?: $path,
-        ServiceProvider::publishableMigrationPaths(),
+it('publishes the migrations in dependency order', function () {
+    // The remember-token table carries a foreign key to user_devices. Publishing both under one
+    // timestamp would leave the migrator sorting them alphabetically, and
+    // create_user_device_remember_tokens_table sorts before create_user_devices_table — the
+    // foreign key would then point at a table that does not exist yet.
+    $targets = array_map(
+        fn (string $path): string => basename($path),
+        array_values(deviceSessionsPublishedMigrations()),
     );
 
-    expect($stamped)->not->toContain(realpath(__DIR__.'/../../database/migrations'));
+    sort($targets);
+
+    expect(array_map('deviceSessionsMigrationTable', $targets))->toBe([
+        'create_user_devices_table.php',
+        'create_user_device_remember_tokens_table.php',
+    ]);
+});
+
+it('reuses an already published migration instead of stamping a second copy', function () {
+    $database = sys_get_temp_dir().'/device-sessions-publish-'.bin2hex(random_bytes(6));
+    mkdir($database.'/migrations', 0o777, true);
+
+    $existing = $database.'/migrations/2020_01_01_000000_create_user_devices_table.php';
+    touch($existing);
+
+    $this->app->useDatabasePath($database);
+    (new DeviceSessionsServiceProvider($this->app))->boot();
+
+    $devices = null;
+    foreach (deviceSessionsPublishedMigrations() as $source => $target) {
+        if (str_ends_with($source, '_create_user_devices_table.php')) {
+            $devices = $target;
+        }
+    }
+
+    expect($devices)->toBe($existing);
+
+    unlink($existing);
+    rmdir($database.'/migrations');
+    rmdir($database);
 });
 
 it('migrates the package tables from the package migration path in the test suite', function () {

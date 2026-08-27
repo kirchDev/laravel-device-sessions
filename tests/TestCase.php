@@ -98,9 +98,10 @@ abstract class TestCase extends Orchestra
     }
 
     /**
-     * The package is publish-only: the service provider does not register its
-     * migration path, so the suite points `migrate` at it explicitly — the same
-     * files a consumer gets from `vendor:publish --tag=device-sessions-migrations`.
+     * The package is publish-only: the service provider does not register its migration
+     * path, so the suite points `migrate` at it explicitly. A consumer gets the same
+     * migration contents from `vendor:publish --tag=device-sessions-migrations`, under
+     * filenames stamped at publish time; here the source prefixes supply the order.
      */
     private function migratePackageTables(): void
     {
