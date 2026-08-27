@@ -32,21 +32,6 @@ use Laravel\Fortify\Events\TwoFactorAuthenticationChallenged;
 
 class DeviceSessionsServiceProvider extends ServiceProvider
 {
-    /**
-     * The package's migrations, in the order they have to run: the remember-token table
-     * carries a foreign key to user_devices, so that table must exist first.
-     *
-     * Published filenames are stamped at publish time, so this list — not the source
-     * filenames — is what fixes the order a consumer's migrator ends up seeing. Each
-     * entry is published one second after the one before it.
-     *
-     * @var list<string>
-     */
-    private const MIGRATIONS = [
-        '0001_01_01_000001_create_user_devices_table.php',
-        '0001_01_01_000002_create_user_device_remember_tokens_table.php',
-    ];
-
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/device-sessions.php', 'device-sessions');
@@ -79,9 +64,11 @@ class DeviceSessionsServiceProvider extends ServiceProvider
     /**
      * Map every package migration onto the filename it gets inside the consuming application.
      *
-     * The migrations are never loaded from the package, so the published copy is the only one
-     * that ever runs. Each is stamped with the publish time, one second apart in MIGRATIONS
-     * order, which is what keeps the foreign keys resolvable when the consumer migrates.
+     * Source files are named `<sequence>_<migration>` — 00001_create_user_devices_table.php and
+     * so on. The sequence is the package's own running order and never leaves the package:
+     * publishing splits it off and stamps what remains with the publish time, one second per
+     * position. That keeps the remember-token table behind the user_devices table it references,
+     * while the migrations still land in the consumer's own timeline rather than ours.
      */
     private function offerMigrationPublishing(): void
     {
@@ -89,16 +76,16 @@ class DeviceSessionsServiceProvider extends ServiceProvider
             return;
         }
 
+        $sources = glob(__DIR__.'/../database/migrations/*.php') ?: [];
+        sort($sources);
+
         $publishedAt = time();
         $paths = [];
 
-        foreach (self::MIGRATIONS as $offset => $migration) {
-            $name = (string) preg_replace('/^\d{4}_\d{2}_\d{2}_\d{6}_/', '', $migration);
+        foreach ($sources as $offset => $source) {
+            $name = (string) preg_replace('/^\d+_/', '', basename($source));
 
-            $paths[__DIR__.'/../database/migrations/'.$migration] = $this->publishedMigrationPath(
-                $name,
-                $publishedAt + $offset,
-            );
+            $paths[$source] = $this->publishedMigrationPath($name, $publishedAt + $offset);
         }
 
         $this->publishes($paths, 'device-sessions-migrations');

@@ -42,9 +42,11 @@ it('offers every package migration under the publish tag', function () {
     $sources = array_map(fn (string $path): string => basename($path), array_keys($published));
     sort($sources);
 
+    // The sequence prefix is the package's running order and is stripped on publish, so it has
+    // to stay in step with the dependency order asserted below.
     expect($sources)->toBe([
-        '0001_01_01_000001_create_user_devices_table.php',
-        '0001_01_01_000002_create_user_device_remember_tokens_table.php',
+        '00001_create_user_devices_table.php',
+        '00002_create_user_device_remember_tokens_table.php',
     ]);
 
     foreach ($published as $source => $target) {
