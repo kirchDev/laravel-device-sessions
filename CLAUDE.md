@@ -53,6 +53,7 @@ Models (`UserDevice`, `UserDeviceRememberToken`) are swappable via `config('devi
 ## Things that are easy to get wrong
 
 - `device-sessions.keys.*` and `table_names.*` must be set **before** running the published migrations — the migration files read config at run time. `user_key_type` must match the host's users-table key type or the FK won't line up.
+- Migrations are **publish-only** — the service provider does **not** call `loadMigrationsFrom()`, so `vendor:publish --tag=device-sessions-migrations` is the only route into a host app. Keep `publishes()`, never `publishesMigrations()`: the latter re-stamps the published filenames, which would make existing consumers' recorded migrations look unrun. The test suite loads the path itself in `tests/TestCase.php`.
 - The package never `require`s Fortify. The bridge class type-hints the Fortify event but is only registered (and thus loaded) when Fortify is installed. Keep the `class_exists` guard.
 - Device timestamps: `last_seen_at` = any activity (throttled); `last_used_at` = activity + remember-token use. Both are kept on purpose.
 - Tests use Testbench; there is no `bootstrap/app.php`. Add new setup to `tests/TestCase.php` / `tests/Pest.php`. The fixture User uses `HasDeviceSessions` + UUID keys.

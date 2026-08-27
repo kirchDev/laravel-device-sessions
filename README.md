@@ -32,6 +32,22 @@ php artisan migrate
 > [!IMPORTANT]
 > Publish the config first (`--tag=device-sessions-config`) and set `device-sessions.keys.*` + `table_names.*` **before** migrating — the migrations read config at run time, and `keys.user_key_type` must match your users-table primary key.
 
+The publish step is **required, once**: the package does not auto-load its migrations, so nothing schema-related runs until the two files sit in your own `database/migrations`. Your DDL stays reviewable, in your repository, and on your deploy pipeline's terms.
+
+<details>
+<summary>Upgrading: migrations became publish-only</summary>
+
+Earlier versions registered the package's migration path themselves, so `php artisan migrate` picked up `create_user_devices_table` and `create_user_device_remember_tokens_table` straight out of `vendor/`. That auto-load is gone — publishing is now the only way they reach you:
+
+```bash
+php artisan vendor:publish --tag=device-sessions-migrations
+```
+
+- **Already published?** Nothing to do. Your copies already shadowed the package's, so the removal changes nothing.
+- **Never published?** Run the command above **before** your next `migrate`. The filenames are unchanged, so migrations you have already run stay recorded as run and the publish is a no-op against your database.
+
+</details>
+
 Add the `HasDeviceSessions` trait to your authenticatable model and point its auth provider at the device-aware driver:
 
 ```php
