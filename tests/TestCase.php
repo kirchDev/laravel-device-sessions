@@ -94,7 +94,21 @@ abstract class TestCase extends Orchestra
         Schema::dropAllTables();
 
         $this->createUsersTable();
-        $this->artisan('migrate')->run();
+        $this->migratePackageTables();
+    }
+
+    /**
+     * The package is publish-only: the service provider does not register its migration
+     * path, so the suite points `migrate` at it explicitly. A consumer gets the same
+     * migration contents from `vendor:publish --tag=device-sessions-migrations`, under
+     * filenames stamped at publish time; here the source prefixes supply the order.
+     */
+    private function migratePackageTables(): void
+    {
+        $this->artisan('migrate', [
+            '--path' => __DIR__.'/../database/migrations',
+            '--realpath' => true,
+        ])->run();
     }
 
     private function createUsersTable(): void

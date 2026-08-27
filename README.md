@@ -32,6 +32,38 @@ php artisan migrate
 > [!IMPORTANT]
 > Publish the config first (`--tag=device-sessions-config`) and set `device-sessions.keys.*` + `table_names.*` **before** migrating — the migrations read config at run time, and `keys.user_key_type` must match your users-table primary key.
 
+The publish step is **required, once**: the package does not auto-load its migrations, so nothing schema-related runs until the two files sit in your own `database/migrations`. Your DDL stays reviewable, in your repository, and on your deploy pipeline's terms.
+
+<details>
+<summary>Upgrading: migrations became publish-only</summary>
+
+Earlier versions registered the package's migration path themselves, so `php artisan migrate` picked up `create_user_devices_table` and `create_user_device_remember_tokens_table` straight out of `vendor/`. That auto-load is gone — publishing is now the only way they reach you:
+
+```bash
+php artisan vendor:publish --tag=device-sessions-migrations
+```
+
+Published copies are stamped with the moment you publish them, so they slot into your own migration timeline rather than carrying the package's dates into your repository.
+
+- **Already published?** Nothing to do. Publishing reuses the filenames you already have, so nothing is duplicated and `php artisan migrate` finds nothing new.
+- **Never published?** Your database already has the two tables, but it recorded them under the package's own filenames — and the freshly published copies carry new ones, which Laravel would treat as unrun. Publish, then record them as run without running them:
+
+  ```bash
+  php artisan tinker --execute="
+      \$repository = app('migration.repository');
+      \$batch = \$repository->getNextBatchNumber();
+      foreach (['user_devices', 'user_device_remember_tokens'] as \$table) {
+          foreach (glob(database_path(\"migrations/*_create_{\$table}_table.php\")) as \$file) {
+              \$repository->log(basename(\$file, '.php'), \$batch);
+          }
+      }
+  "
+  ```
+
+  Check that `php artisan migrate:status` shows both as run before your next deploy.
+
+</details>
+
 Add the `HasDeviceSessions` trait to your authenticatable model and point its auth provider at the device-aware driver:
 
 ```php
