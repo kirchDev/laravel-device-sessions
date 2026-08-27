@@ -46,21 +46,7 @@ php artisan vendor:publish --tag=device-sessions-migrations
 Published copies are stamped with the moment you publish them, so they slot into your own migration timeline rather than carrying the package's dates into your repository.
 
 - **Already published?** Nothing to do. Publishing reuses the filenames you already have, so nothing is duplicated and `php artisan migrate` finds nothing new.
-- **Never published?** Your database already has the two tables, but it recorded them under the package's own filenames — and the freshly published copies carry new ones, which Laravel would treat as unrun. Publish, then record them as run without running them:
-
-  ```bash
-  php artisan tinker --execute="
-      \$repository = app('migration.repository');
-      \$batch = \$repository->getNextBatchNumber();
-      foreach (['user_devices', 'user_device_remember_tokens'] as \$table) {
-          foreach (glob(database_path(\"migrations/*_create_{\$table}_table.php\")) as \$file) {
-              \$repository->log(basename(\$file, '.php'), \$batch);
-          }
-      }
-  "
-  ```
-
-  Check that `php artisan migrate:status` shows both as run before your next deploy.
+- **Never published?** This is a breaking change and needs a hand. Your database already has the two tables, but recorded them under the package's own filenames — the published copies carry generated ones, which Laravel reads as unrun. The next `migrate` would try to create tables that already exist. Reconcile your `migrations` table with the published filenames before that run.
 
 </details>
 
