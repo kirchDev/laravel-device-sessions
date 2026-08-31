@@ -36,7 +36,8 @@
     "illuminate/database": "^13.0",
     "illuminate/events": "^13.0",
     "illuminate/http": "^13.0",
-    "illuminate/support": "^13.0"
+    "illuminate/support": "^13.0",
+    "spatie/laravel-package-tools": "^1.93.1"
   },
   "require-dev": {
     "larastan/larastan": "^3.9",
