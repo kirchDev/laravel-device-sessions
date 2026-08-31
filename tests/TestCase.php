@@ -88,6 +88,19 @@ abstract class TestCase extends Orchestra
     {
         parent::setUp();
 
+        $this->restoreBaselineSchema();
+    }
+
+    /**
+     * The schema every test starts from: a clean database, the host users table and the
+     * package's own migrations.
+     *
+     * A test that tears this down — migrate:fresh drops users too, and create_user_devices_table
+     * carries a foreign key into it — calls this again rather than re-running the package path
+     * alone, which would leave that foreign key pointing at nothing.
+     */
+    protected function restoreBaselineSchema(): void
+    {
         // Persistent drivers (e.g. pgsql) keep tables between tests, unlike the
         // fresh-per-connection in-memory SQLite default. Drop everything first so
         // each test starts from a clean schema.
