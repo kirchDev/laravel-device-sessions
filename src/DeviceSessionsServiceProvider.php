@@ -10,7 +10,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\ServiceProvider;
 use KirchDev\DeviceSessions\Actions\ResolveOrCreateUserDeviceFromRequest;
 use KirchDev\DeviceSessions\Auth\DeviceAwareEloquentUserProvider;
 use KirchDev\DeviceSessions\Console\PruneRevokedUserDevicesCommand;
@@ -27,16 +26,34 @@ use KirchDev\DeviceSessions\Support\DefaultIpMasker;
 use KirchDev\DeviceSessions\Support\DefaultOsFamilyDetector;
 use KirchDev\DeviceSessions\Support\DeviceCookieBuilder;
 use KirchDev\DeviceSessions\Support\DeviceSessions;
-use KirchDev\DeviceSessions\Support\PackageMigrations;
 use KirchDev\DeviceSessions\Support\Sha256RememberTokenHasher;
 use Laravel\Fortify\Events\TwoFactorAuthenticationChallenged;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class DeviceSessionsServiceProvider extends ServiceProvider
+class DeviceSessionsServiceProvider extends PackageServiceProvider
 {
-    public function register(): void
+    /**
+     * The package's shape: the config file, the command and the migrations.
+     *
+     * Migrations are discovered from database/migrations rather than listed here, so the
+     * running order lives in the filenames and adding one is a single file. They are named
+     * with Laravel's own sentinel date (0001_01_01_000001_create_user_devices_table.php): the
+     * publish strips that prefix and stamps its own, and in the meantime it keeps the source
+     * files sorting in dependency order for the suite, which migrates them from the package
+     * path. runsMigrations() stays off — consumers publish, the provider never auto-loads.
+     */
+    public function configurePackage(Package $package): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/device-sessions.php', 'device-sessions');
+        $package
+            ->name('laravel-device-sessions')
+            ->hasConfigFile()
+            ->hasCommands(PruneRevokedUserDevicesCommand::class)
+            ->discoversMigrations();
+    }
 
+    public function packageRegistered(): void
+    {
         $this->app->singleton(DeviceNameResolver::class, DefaultDeviceNameResolver::class);
         $this->app->singleton(OsFamilyDetector::class, DefaultOsFamilyDetector::class);
         $this->app->singleton(IpMasker::class, DefaultIpMasker::class);
@@ -45,38 +62,11 @@ class DeviceSessionsServiceProvider extends ServiceProvider
         $this->app->singleton(DeviceResolver::class, ResolveOrCreateUserDeviceFromRequest::class);
     }
 
-    public function boot(): void
+    public function packageBooted(): void
     {
-        $this->publishes([
-            __DIR__.'/../config/device-sessions.php' => config_path('device-sessions.php'),
-        ], 'device-sessions-config');
-
-        $this->offerMigrationPublishing();
-
         $this->registerAuthProvider();
         $this->registerEventListeners();
         $this->registerFortifyBridge();
-
-        if ($this->app->runningInConsole()) {
-            $this->commands([PruneRevokedUserDevicesCommand::class]);
-        }
-    }
-
-    /**
-     * Offer the migrations under names generated for the consuming application.
-     *
-     * The naming rules live in PackageMigrations so the provider stays about wiring.
-     */
-    private function offerMigrationPublishing(): void
-    {
-        if (! $this->app->runningInConsole()) {
-            return;
-        }
-
-        $this->publishes(
-            PackageMigrations::publishMap(__DIR__.'/../database/migrations'),
-            'device-sessions-migrations',
-        );
     }
 
     private function registerAuthProvider(): void
