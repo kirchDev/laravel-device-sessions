@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.5.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.4.0...v0.5.0) (2026-08-31)
+
+
+### ⚠ BREAKING CHANGES
+
+* **migrations:** KirchDev\DeviceSessions\Support\PackageMigrations is removed and DeviceSessionsServiceProvider now extends Spatie\LaravelPackageTools\PackageServiceProvider. Code that booted the provider by hand must call register() before boot(). The package's own migration filenames changed; consumers only ever see the published names, which are unchanged.
+
+### Bug Fixes
+
+* **deps:** require laravel-package-tools 1.93.1 for the migration reuse rule ([f469d40](https://github.com/kirchDev/laravel-device-sessions/commit/f469d40301b0ed804e8b152316e33576b6f3e990)), closes [#33](https://github.com/kirchDev/laravel-device-sessions/issues/33)
+
+
+### Performance
+
+* **migrations:** skip the publish map outside the console ([dd91d7d](https://github.com/kirchDev/laravel-device-sessions/commit/dd91d7dfc677600bd84e5e99d746fed73664e851)), closes [#33](https://github.com/kirchDev/laravel-device-sessions/issues/33)
+
+
+### Refactor
+
+* **migrations:** publish migrations through spatie/laravel-package-tools ([e164d2f](https://github.com/kirchDev/laravel-device-sessions/commit/e164d2f0849f2115c4805f9b50de3ac8a98d73cd))
+
 ## [0.4.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.3.0...v0.4.0) (2026-08-27)
 
 
