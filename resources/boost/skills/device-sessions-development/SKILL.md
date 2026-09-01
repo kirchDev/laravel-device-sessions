@@ -100,7 +100,13 @@ $this->app->bind(
 ```
 
 The models are swappable the same way, through `config('device-sessions.models.device')` and
-`...remember_token` — resolve them from config rather than referencing the package classes.
+`...remember_token` — resolve them from config rather than instantiating or querying the packaged
+classes. Type declarations are a separate question: a hint on the packaged model constructs nothing
+and an override satisfies it, so it needs no change. Where the sharper type is worth having, declare
+`@use HasDeviceSessions<App\Models\User\UserDevice>` on the authenticatable and `devices()` and
+`currentDevice()` return your model. The actions cannot: their `execute()` takes an `Authenticatable`
+and so has nothing to bind a template to, which is why they return the packaged model and a call
+site narrows it itself.
 
 ## Testing
 
