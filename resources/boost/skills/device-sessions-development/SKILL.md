@@ -109,8 +109,10 @@ The models are swappable the same way, through `config('device-sessions.models.d
   proves nothing about the wiring.
 - Give the test user the `HasDeviceSessions` trait and set the users provider driver to
   `device-aware-eloquent`, or the remember-me path under test is not the one production runs.
-- Assert revocation by its effect — the device gone from `ListUserDevices` **and** its remember
-  tokens gone — rather than by the revoked flag alone.
+- Assert revocation by its effect: the device gone from `ListUserDevices`, and a remember token
+  from it no longer authenticating. Nothing is deleted — `RevokeUserDevice` stamps `revoked_at` on
+  the device and its tokens, and the rows only leave the tables when `device-sessions:prune` passes
+  the retention window. An `assertDatabaseMissing` on the token table will fail.
 - `last_seen_at` is throttled, so a second request inside the throttle window deliberately does not
   move it. Travel the clock instead of asserting on two consecutive requests.
 - `keys.user_key_type` must match the users table in the test schema too; a mismatch shows up as a
