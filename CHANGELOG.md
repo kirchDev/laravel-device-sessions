@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.5.0...v0.6.0) (2026-09-01)
+
+
+### Features
+
+* **boost:** ship a core guideline and a device-sessions-development skill ([2146fa9](https://github.com/kirchDev/laravel-device-sessions/commit/2146fa9f2c17bd59aa582a16579523b35715f0bc)), closes [#36](https://github.com/kirchDev/laravel-device-sessions/issues/36)
+
+
+### Bug Fixes
+
+* **boost:** describe revocation as a stamp, not a delete ([2a6abb4](https://github.com/kirchDev/laravel-device-sessions/commit/2a6abb4fa9f60e14c12b8a71796bd7b6cf1e9ff9)), closes [#36](https://github.com/kirchDev/laravel-device-sessions/issues/36)
+
+
+### Documentation
+
+* **agents:** note the consumer-facing boost resources ([ceb734b](https://github.com/kirchDev/laravel-device-sessions/commit/ceb734b482d80b99aa3ce6f4ab4fe814fb72cf33)), closes [#36](https://github.com/kirchDev/laravel-device-sessions/issues/36)
+
 ## [0.5.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.4.0...v0.5.0) (2026-08-31)
 
 
