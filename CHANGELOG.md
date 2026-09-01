@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1](https://github.com/kirchDev/laravel-device-sessions/compare/v0.6.0...v0.6.1) (2026-09-01)
+
+
+### Bug Fixes
+
+* **boost:** separate the resolution rule from type declarations ([a313b62](https://github.com/kirchDev/laravel-device-sessions/commit/a313b627e3f8a4fe33999eafb26c03f57ec7b30b)), closes [#40](https://github.com/kirchDev/laravel-device-sessions/issues/40)
+* **types:** make the device relation generic in the configured model ([062b7c8](https://github.com/kirchDev/laravel-device-sessions/commit/062b7c88b1e54d42f37aa506204bfbf560d1898c)), closes [#40](https://github.com/kirchDev/laravel-device-sessions/issues/40)
+
 ## [0.6.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.5.0...v0.6.0) (2026-09-01)
 
 
