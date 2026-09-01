@@ -31,7 +31,18 @@ configured in `config/device-sessions.php`.
 
 ## Extending it
 - Resolve the models through `config('device-sessions.models.*')` — user, device and remember token
-  are all swappable.
+  are all swappable. Never `new`, `::query()` or `::find()` on `KirchDev\DeviceSessions\Models\*`:
+  the application's own subclass carries its key generation, casts and model events, and an
+  application without a morph map stores the class it resolved, so a row written through the
+  packaged class names a different class than every row beside it and quietly stops matching.
+- That rule is about resolution, not about type declarations. A type-hint or a `@param`/`@return`
+  constructs nothing, and an application's subclass satisfies a hint on the packaged class, so
+  neither needs changing. Narrow one only where the generics carry the type: declare
+  `{{ '@'.'use' }} HasDeviceSessions<App\Models\User\UserDevice>` on the authenticatable and `devices()` and
+  `currentDevice()` return that model. The actions cannot do the same: their `execute()` takes an
+  `Authenticatable`, which gives a template nothing to bind to, so they stay on the packaged model
+  and a call site narrows it itself when it wants to. Never add an annotation purely to narrow a
+  type.
 - Customise behaviour by rebinding a contract in `KirchDev\DeviceSessions\Contracts`
   (`IpMasker`, `DeviceNameResolver`, `OsFamilyDetector`, `DeviceCookieFactory`, `DeviceResolver`,
   `RememberTokenHasher`), never by extending or patching the shipped `Default*` classes.
