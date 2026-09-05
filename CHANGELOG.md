@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.7.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.6.1...v0.7.0) (2026-09-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* move to pnpm 12
+* this repository now requires pnpm 12.
+
+### Features
+
+* **ci:** call the central workflow bodies instead of copying them ([be68715](https://github.com/kirchDev/laravel-device-sessions/commit/be6871527288e064023f6724fdd1c91d7b588b0e))
+
+
+### Bug Fixes
+
+* **ci:** pin the workflow bodies to v0.2.0 and drop paths-ignore ([c331cf8](https://github.com/kirchDev/laravel-device-sessions/commit/c331cf8f3b22c145f11b9d2b4b75121feed9479e))
+* **ci:** pin the workflow bodies to v0.5.0 ([3c3a2f6](https://github.com/kirchDev/laravel-device-sessions/commit/3c3a2f64fd92a3d72f22d8c7f5cd3a4ab3f7fd15))
+* **ci:** pin the workflow bodies to v0.7.0 ([d4fa083](https://github.com/kirchDev/laravel-device-sessions/commit/d4fa0836dc2622b64a00b021e24e1a493de3abaf))
+
+
+### Reverts
+
+* go back to pnpm 11.25.0 ([055c899](https://github.com/kirchDev/laravel-device-sessions/commit/055c8999078c26e66ce06f765321c74923282365))
+
+
+### Chores
+
+* move to pnpm 12 ([2693bef](https://github.com/kirchDev/laravel-device-sessions/commit/2693bef21a548952f8b5b932a72123029c86c227))
+* move to pnpm 12 ([d318662](https://github.com/kirchDev/laravel-device-sessions/commit/d3186628a22af88485b566dfb0f0b23c8d264a8e))
+
 ## [0.6.1](https://github.com/kirchDev/laravel-device-sessions/compare/v0.6.0...v0.6.1) (2026-09-01)
 
 
