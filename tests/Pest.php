@@ -15,7 +15,8 @@ pest()->extend(UlidKeysTestCase::class)->in('UlidKeys');
 
 function makeUser(string $email = 'test@example.com'): User
 {
-    return User::create(['name' => 'Test', 'email' => $email]);
+    // Recent Laravel 13 releases refuse a remember-me recall for a user without a string password.
+    return User::create(['name' => 'Test', 'email' => $email, 'password' => 'not-a-real-password-hash']);
 }
 
 function requestWith(
