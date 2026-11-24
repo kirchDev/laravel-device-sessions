@@ -19,7 +19,7 @@
 $user->devices; // every browser signed in, with masked IP, OS and last-seen — GitHub-style
 ```
 
-That's it. Concurrent device-bound remember-me tokens, a "where am I signed in" list, and revoke/rename — without touching your login controllers.
+That's it. Every remember-me login gets its own device row and token — without touching your login controllers.
 
 ## 📦 Install & run
 
@@ -199,10 +199,7 @@ The test suite runs via Testbench + in-memory SQLite — no host app required.
 
 ## 🤝 Contributing
 
-PRs welcome. Conventional Commits required (enforced via commitlint). Husky runs Pint + Larastan + oxlint + oxfmt on `git commit`, so you can mostly forget about style.
-
-> [!TIP]
-> Run `pnpm check:fix` (Node tooling) and `composer pint:fix` (PHP) before pushing — CI will catch what husky missed.
+PRs welcome against `dev` — setup, checks and the Conventional Commits rule are in [CONTRIBUTING.md](CONTRIBUTING.md). Husky runs Pint + Larastan + oxlint + oxfmt on `git commit`, so you can mostly forget about style.
 
 ## 🛣️ Versioning
 
