@@ -14,7 +14,7 @@ Standalone Composer library (no host app) that adds device-bound login sessions 
 - `TrackAuthenticatedUserDevice` is not auto-registered. It sets the `current_device_id` request attribute.
 - Device resolution falls back cookie → session-keyed bootstrap cache → create. The cache bridges login → two-factor before the cookie exists; keep it.
 - Host-facing services are contracts in `src/Contracts/`, bound in `DeviceSessionsServiceProvider::packageRegistered()`. Resolve them from the container, never the concrete class.
-- `TouchDeviceLastSeen` fires `DeviceTouched`; the package assumes no `users.last_seen_at`. `last_seen_at` is any activity (throttled), `last_used_at` activity plus remember-token use. Keep both.
+- `TouchDeviceLastSeen` (throttled) writes both `last_seen_at` and `last_used_at` on the device and fires `DeviceTouched`; a remember-token login stamps the token row's own `last_used_at`. The package assumes no `users.last_seen_at`. Keep both device columns.
 - The `OtherDeviceLogout` → revoke-other-devices listener is toggled by `device-sessions.events.*` and on by default.
 - Fortify is never required: the bridge in `src/Integrations/Fortify/` registers only behind `class_exists(TwoFactorAuthenticationChallenged::class)`. Keep the guard.
 - Models are swappable via `device-sessions.models.*`, key type (id / uuid / ulid) via `HasConfigurableKey`. Hosts put `HasDeviceSessions` on their Authenticatable.
