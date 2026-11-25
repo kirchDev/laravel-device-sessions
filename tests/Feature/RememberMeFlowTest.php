@@ -162,3 +162,16 @@ it('keeps the plaintext remember token out of the users table when the user is s
 
     expect(DB::table('users')->where('id', $user->getKey())->value('remember_token'))->toBeNull();
 });
+
+it('stamps the device as used when a remember token logs the user back in', function () {
+    $user = makeUser();
+    $cookies = rememberLogin($user);
+
+    $device = UserDevice::query()->where('user_id', $user->getKey())->sole();
+    $device->forceFill(['last_used_at' => now()->subDay()])->save();
+
+    $this->travel(5)->minutes();
+    recallFrom($cookies)->user();
+
+    expect($device->refresh()->last_used_at->greaterThan(now()->subMinute()))->toBeTrue();
+});

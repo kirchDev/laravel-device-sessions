@@ -96,7 +96,13 @@ class DeviceAwareEloquentUserProvider extends EloquentUserProvider
             return null;
         }
 
-        $rememberToken->forceFill(['last_used_at' => now()])->save();
+        $now = now();
+
+        $rememberToken->forceFill(['last_used_at' => $now])->save();
+
+        DeviceSessions::deviceModel()::query()
+            ->whereKey($deviceId)
+            ->update(['last_used_at' => $now]);
 
         return $user;
     }

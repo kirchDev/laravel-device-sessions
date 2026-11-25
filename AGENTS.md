@@ -14,7 +14,7 @@ Standalone Composer library (no host app) that adds device-bound login sessions 
 - `TrackAuthenticatedUserDevice` is not auto-registered. It sets the `current_device_id` request attribute.
 - Device resolution falls back cookie → session-keyed bootstrap cache → create. The cache bridges login → two-factor before the cookie exists; keep it.
 - Host-facing services are contracts in `src/Contracts/`, bound in `DeviceSessionsServiceProvider::packageRegistered()`. Resolve them from the container, never the concrete class.
-- `TouchDeviceLastSeen` (throttled) writes both `last_seen_at` and `last_used_at` on the device and fires `DeviceTouched`; a remember-token login stamps the token row's own `last_used_at`. The package assumes no `users.last_seen_at`. Keep both device columns.
+- `last_seen_at` = any activity (throttled `TouchDeviceLastSeen`, which also fires `DeviceTouched`); `last_used_at` = that activity plus every remember-token login, which also stamps the token row. The package assumes no `users.last_seen_at`. Keep both device columns.
 - The provider stores no token in `users.remember_token`: a leftover value makes Laravel skip issuing one at login, so `retrieveById()` / `retrieveByCredentials()` clear it once and `updateRememberToken()` keeps the in-memory token from being saved. Keep both guards.
 - The `OtherDeviceLogout` → revoke-other-devices listener is toggled by `device-sessions.events.*` and on by default.
 - Fortify is never required: the bridge in `src/Integrations/Fortify/` registers only behind `class_exists(TwoFactorAuthenticationChallenged::class)`. Keep the guard.
