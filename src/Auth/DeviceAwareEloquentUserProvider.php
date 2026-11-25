@@ -8,6 +8,7 @@ use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cookie;
@@ -34,6 +35,19 @@ class DeviceAwareEloquentUserProvider extends EloquentUserProvider
         private readonly RememberTokenHasher $tokenHasher,
     ) {
         parent::__construct($hasher, $model);
+    }
+
+    public function retrieveById($identifier): ?Authenticatable
+    {
+        return $this->withoutColumnToken(parent::retrieveById($identifier));
+    }
+
+    /**
+     * @param  array<string, mixed>  $credentials
+     */
+    public function retrieveByCredentials(#[\SensitiveParameter] array $credentials): ?Authenticatable
+    {
+        return $this->withoutColumnToken(parent::retrieveByCredentials($credentials));
     }
 
     public function retrieveByToken($identifier, #[\SensitiveParameter] $token): ?Authenticatable
@@ -118,6 +132,53 @@ class DeviceAwareEloquentUserProvider extends EloquentUserProvider
             'last_used_at' => now(),
             'expires_at' => $this->rememberTokenExpiry(),
         ]);
+
+        // The guard has just set the plaintext token on the model, which marks the column
+        // dirty: any later save() in this request would persist it into the users table.
+        $this->forgetColumnChange($user);
+    }
+
+    /**
+     * The users table's own remember_token column is dead under this driver, but a value
+     * left over from before the switch makes Laravel skip issuing a token at login
+     * (SessionGuard::ensureRememberTokenIsSet), so no device token is ever bound. Clear
+     * it once, in the row and on the loaded model, without touching timestamps or events.
+     *
+     * @template TUser of Authenticatable
+     *
+     * @param  TUser|null  $user
+     * @return TUser|null
+     */
+    private function withoutColumnToken(?Authenticatable $user): ?Authenticatable
+    {
+        if (! $user instanceof Model) {
+            return $user;
+        }
+
+        $column = $user->getRememberTokenName();
+
+        if ($column === '' || ! array_key_exists($column, $user->getAttributes()) || $user->getAttributes()[$column] === null) {
+            return $user;
+        }
+
+        $user->newQueryWithoutScopes()->whereKey($user->getKey())->toBase()->update([$column => null]);
+        $user->setAttribute($column, null);
+        $user->syncOriginalAttribute($column);
+
+        return $user;
+    }
+
+    private function forgetColumnChange(Authenticatable $user): void
+    {
+        if (! $user instanceof Model) {
+            return;
+        }
+
+        $column = $user->getRememberTokenName();
+
+        if ($column !== '' && array_key_exists($column, $user->getAttributes())) {
+            $user->syncOriginalAttribute($column);
+        }
     }
 
     private function rememberTokenExpiry(): ?Carbon

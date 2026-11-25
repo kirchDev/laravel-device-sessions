@@ -137,6 +137,9 @@ abstract class TestCase extends Orchestra
             $table->string('name')->nullable();
             $table->string('email')->nullable();
             $table->string('password')->nullable();
+            // A stock Laravel users table carries the column the package stops using; keeping it
+            // here is what lets the suite see a value left over from before the switch.
+            $table->rememberToken();
             $table->timestamp('last_seen_at')->nullable();
             $table->timestamps();
         });
