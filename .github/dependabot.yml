@@ -55,6 +55,10 @@ updates:
       interval: 'monthly'
     cooldown:
       default-days: 3
+      # The estate's own workflow bodies are released by us, so there is no
+      # unknown publisher to wait out: they update as soon as they are tagged.
+      exclude:
+        - 'kirchDev/workflows*'
     labels:
       - 'dependencies'
       - 'stack: github-actions'
