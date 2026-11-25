@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.7.1](https://github.com/kirchDev/laravel-device-sessions/compare/v0.7.0...v0.7.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **auth:** bind a device token for users with a leftover remember_token ([7cc72ee](https://github.com/kirchDev/laravel-device-sessions/commit/7cc72ee85cef9079acbba5bc7203dbd7960cde74))
+* **auth:** stamp the device as used on a remember-token login ([0749ba5](https://github.com/kirchDev/laravel-device-sessions/commit/0749ba57c845392aebc9dcbeab34d599958fcb9e))
+* **ci:** run CI on pushes to main so the tests badge tracks main ([f0d1e0d](https://github.com/kirchDev/laravel-device-sessions/commit/f0d1e0dcb2568392cac5bac6e1382eee132b70e1))
+
+
+### Documentation
+
+* **readme:** correct the Pest version and the integration defaults ([f659909](https://github.com/kirchDev/laravel-device-sessions/commit/f659909acf7f43f1ce0c33c0ee64f4e8ac0f9b82))
+* **readme:** drop the tagline echo and point contributors at CONTRIBUTING ([499ac72](https://github.com/kirchDev/laravel-device-sessions/commit/499ac72cce6cc76566bc00327757266eceed73b7))
+* scaffold the concepts and guides pages ([01c5296](https://github.com/kirchDev/laravel-device-sessions/commit/01c5296a103b9361f3b5d1f651964b6b2dc1b9c2))
+* slim the agent instructions and correct stale facts ([80b715e](https://github.com/kirchDev/laravel-device-sessions/commit/80b715e5aabc87b3409a1879e0d1d444a04c7db9))
+* slim the contributing guide and target dev ([ee3d15a](https://github.com/kirchDev/laravel-device-sessions/commit/ee3d15ae8b74e9bfa06098583699e8045d54e04c))
+* state the other-device-logout listener's real default ([490cf3f](https://github.com/kirchDev/laravel-device-sessions/commit/490cf3f9bbe6bacce238116b25b58c93d3d00655))
+* state which rows the device timestamps are written to ([eef2e02](https://github.com/kirchDev/laravel-device-sessions/commit/eef2e02cc664edf4089f68a6be0735d5e3b062a9))
+
 ## [0.7.0](https://github.com/kirchDev/laravel-device-sessions/compare/v0.6.1...v0.7.0) (2026-10-12)
 
 
