@@ -11,6 +11,11 @@ on:
       - main
       - dev
     types: [opened, synchronize, reopened, ready_for_review]
+  # A release lands on main by merge, and the README's tests badge reads main's
+  # own runs; without this trigger it shows whatever ran there last.
+  push:
+    branches:
+      - main
 
 # PERMISSIONS PER JOB, NOT PER WORKFLOW. A workflow-level block caps every
 # called body: `_ci-laravel.yml` needs `pull-requests: write` for its coverage
