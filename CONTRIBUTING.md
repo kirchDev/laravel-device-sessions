@@ -11,7 +11,7 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
 
 ## Setup
 
-PHP 8.4+, Composer 2, Node 24+ (`.nvmrc`) and pnpm 12 (`packageManager` in `package.json`).
+PHP 8.4+, Composer 2, Node 26 (`.nvmrc`; `engines` still allows 24+) and pnpm 12 (`packageManager` in `package.json`).
 
 ```bash
 git clone https://github.com/kirchDev/laravel-device-sessions.git

@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 
 # Two bodies: the Node gate from package.json's `check`, and the PHP suite the
-# package actually ships. The support matrix is the one thing neither body can
-# read from the repo, so it is the only input.
+# package actually ships. Neither body reads the repo for its runtimes, so the
+# PHP/Laravel matrix and the Node version (kept equal to .nvmrc) are the inputs.
 name: CI
 
 on:
@@ -29,6 +29,8 @@ jobs:
     permissions:
       contents: read
     uses: kirchDev/workflows/.github/workflows/_ci-check.yml@e3abe515daa69d2a65794a96608d698daaf389ce # v0.19.1
+    with:
+      node-version: '26'
 
   php:
     name: PHP
