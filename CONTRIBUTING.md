@@ -1,77 +1,45 @@
 # Contributing to laravel-device-sessions
 
-Thanks for taking the time to contribute! 📱 This document covers what you need to get a PR landed.
-
-## Code of Conduct
-
-This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold it.
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Reporting issues
 
-- **Bugs**: open a [Bug report](https://github.com/kirchDev/laravel-device-sessions/issues/new?template=bug_report.yml) with a minimal failing Pest test if at all possible.
-- **Feature requests**: open a [Feature request](https://github.com/kirchDev/laravel-device-sessions/issues/new?template=feature_request.yml).
-- **Questions & ideas, or something that might be a bug**: start in the [Discord forum](https://discord.kirch.dev/) — that's where the low-friction, unconfirmed stuff lives.
-- **Security vulnerabilities**: **do not** open a public issue. Follow [SECURITY.md](SECURITY.md).
+- **Bugs:** a [Bug report](https://github.com/kirchDev/laravel-device-sessions/issues/new?template=bug_report.yml), ideally with a failing Pest test.
+- **Features:** a [Feature request](https://github.com/kirchDev/laravel-device-sessions/issues/new?template=feature_request.yml).
+- **Questions or unconfirmed bugs:** the [Discord forum](https://discord.kirch.dev/).
+- **Security:** never a public issue — follow [SECURITY.md](SECURITY.md).
 
-## Development setup
+## Setup
 
-Requirements:
-
-- PHP **8.4+**
-- Composer 2
-- Node **24+** and **pnpm 11** (for dev tooling — husky, lint-staged, oxlint, oxfmt)
-
-Clone and install:
+PHP 8.4+, Composer 2, Node 26 (`.nvmrc`; `engines` still allows 24+) and pnpm 12 (`packageManager` in `package.json`).
 
 ```bash
 git clone https://github.com/kirchDev/laravel-device-sessions.git
 cd laravel-device-sessions
 composer install
-pnpm install   # wires husky hooks
+pnpm install   # wires the husky hooks
 ```
 
-## Running the suite
+## Checks
 
-| Command             | What it does                                 |
-| :------------------ | :------------------------------------------- |
-| `composer test`     | Pest 4 + Testbench (in-memory SQLite).       |
-| `composer pint`     | Laravel Pint in test mode.                   |
-| `composer pint:fix` | Auto-fix style.                              |
-| `composer larastan` | Larastan / PHPStan static analysis.          |
-| `pnpm check`        | oxlint + oxfmt across JS / JSON / YAML / MD. |
-| `pnpm check:fix`    | Auto-fix the above.                          |
+`pnpm check && composer larastan && composer test` must pass before you push; `composer pint` checks PHP style. `pnpm check:fix` and `composer pint:fix` fix what they can. Husky runs lint-staged and commitlint on commit — if a hook fails, fix it and commit again; don't `--no-verify` unless asked.
 
-The same commands run in CI — keep them green before you push.
+## Pull requests
 
-## Branching & PRs
-
-1. **Don't push directly to `main`.** Branch off `main` for every change.
-2. **Conventional Commits required.** Commitlint enforces this on every commit. Examples:
-   - `feat: add ulid key type support`
-   - `fix(provider): rotate remember token on every login`
-   - `docs(readme): clarify the device-aware-eloquent driver wiring`
-   - `chore(deps): bump testbench to 11.5`
-   - Breaking changes: `feat!: ...` or include `BREAKING CHANGE:` in the body.
-3. **One concern per PR.** Smaller PRs land faster.
-4. **Tests are required for code changes.** Bug fixes need a regression test, features need coverage of the happy path and at least one edge case.
-5. **Update relevant docs.** README, config inline docs, and the migration if you change a default.
-
-## Style & quality gates
-
-Husky runs the following on `git commit`:
-
-- **PHP files** → `pint` + `phpstan` (Larastan)
-- **JS / JSON / YAML / MD** → `oxlint` + `oxfmt`
-
-If a hook fails, fix the issue and commit again. **Don't `--no-verify`** unless I explicitly ask.
-
-> [!TIP]
-> Run `pnpm check:fix` and `composer pint:fix` before opening a PR — saves a CI cycle.
+- Branch off `dev` and target `dev`; `main` only receives release promotions.
+- Conventional Commits; mark breaking changes with `!` or a `BREAKING CHANGE:` footer.
+- One concern per PR.
+- Code changes need tests: a regression test for a fix, the happy path and one edge case for a feature.
+- Update the README and the config's inline docs when behaviour or a default changes.
 
 ## Releases
 
-Releases are automated via [release-please](https://github.com/googleapis/release-please). When your `feat:`/`fix:` commits land on `main`, release-please opens a PR with the next version bump and CHANGELOG entry. Merging it tags the release; Packagist picks it up via the GitHub webhook.
+release-please opens a release PR from the `feat` / `fix` commits on `main`; merging it tags the release, which Packagist picks up.
+
+## Agent instructions
+
+Agent rules live in [AGENTS.md](AGENTS.md). Claude Code (v2.1.277+) loads it only while no `CLAUDE.md` or `CLAUDE.local.md` sits in the working directory or above, so don't commit one.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+Contributions are licensed under the [MIT License](LICENSE).

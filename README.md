@@ -19,7 +19,7 @@
 $user->devices; // every browser signed in, with masked IP, OS and last-seen — GitHub-style
 ```
 
-That's it. Concurrent device-bound remember-me tokens, a "where am I signed in" list, and revoke/rename — without touching your login controllers.
+That's it. Every remember-me login gets its own device row and token — without touching your login controllers.
 
 ## 📦 Install & run
 
@@ -97,9 +97,9 @@ Route::middleware(['auth', 'track.device'])->group(function () {
 - **🧩 Overridable everything** — name parsing, OS detection, cookie policy, IP masking and token hashing are contracts with sensible defaults.
 - **🧰 Config-driven schema** — models, table names and key types (`id` / `uuid` / `ulid`) all overridable.
 - **📡 Event-driven** — a `DeviceTouched` event lets you react without the package assuming your schema.
-- **🧪 Library-grade** — Pest 4 + Testbench, no host app needed.
+- **🧪 Library-grade** — Pest 5 + Testbench, no host app needed.
 
-## 📋 Managing devices
+## 📱 Managing devices
 
 The package ships **no routes** — every operation is a plain action you call from your own controllers, so the response shape stays yours:
 
@@ -116,7 +116,7 @@ The middleware exposes the active device as the `current_device_id` request attr
 
 ## 🧩 Overridable contracts
 
-Every host-facing behaviour is a contract bound to a `Default*` — rebind any of them in a service provider:
+Every host-facing behaviour is a contract bound to a default implementation — rebind any of them in a service provider:
 
 ```php
 $this->app->bind(
@@ -147,9 +147,9 @@ $this->app->bind(
 Event::listen(fn (DeviceTouched $event) => $event->user->forceFill(['last_seen_at' => now()])->save());
 ```
 
-Two opt-in integrations:
+Two built-in integrations:
 
-- **`OtherDeviceLogout`** → revokes all other devices (mirrors `Auth::logoutOtherDevices()`); toggle via `device-sessions.events`.
+- **`OtherDeviceLogout`** → revokes all other devices (mirrors `Auth::logoutOtherDevices()`); on by default, toggle via `device-sessions.events.*`.
 - **Fortify two-factor** → a listener queues the device cookie at the 2FA challenge (where the `Login` event hasn't fired yet), auto-wired via `class_exists` so Fortify is never required. Using another 2FA flow? Write your own bridge against the `DeviceResolver` contract.
 
 ## 🧹 Pruning revoked devices
@@ -190,7 +190,7 @@ php artisan device-sessions:prune --days=90
 
 ```bash
 composer install
-composer test       # Pest 4
+composer test       # Pest 5
 composer pint       # Laravel Pint (test mode)
 composer larastan   # Larastan / PHPStan
 ```
@@ -199,10 +199,7 @@ The test suite runs via Testbench + in-memory SQLite — no host app required.
 
 ## 🤝 Contributing
 
-PRs welcome. Conventional Commits required (enforced via commitlint). Husky runs Pint + Larastan + oxlint + oxfmt on `git commit`, so you can mostly forget about style.
-
-> [!TIP]
-> Run `pnpm check:fix` (Node tooling) and `composer pint:fix` (PHP) before pushing — CI will catch what husky missed.
+PRs welcome against `dev` — setup, checks and the Conventional Commits rule are in [CONTRIBUTING.md](CONTRIBUTING.md). Husky runs Pint + Larastan + oxlint + oxfmt on `git commit`, so you can mostly forget about style.
 
 ## 🛣️ Versioning
 
