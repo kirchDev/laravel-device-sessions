@@ -11,7 +11,8 @@ use KirchDev\DeviceSessions\Support\DeviceSessions;
 /**
  * Mirrors Laravel's "log out other devices" into device-session land: when
  * Auth::logoutOtherDevices() fires OtherDeviceLogout, revoke every device for
- * the user except the current one. Opt-in via config.
+ * the user except the current one. On by default; toggle it with
+ * `device-sessions.events.revoke_other_devices_on_other_device_logout`.
  */
 final class RevokeDevicesOnOtherDeviceLogout
 {
